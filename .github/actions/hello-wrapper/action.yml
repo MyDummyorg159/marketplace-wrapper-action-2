@@ -1,0 +1,45 @@
+name: "Enhanced Wrapper Action"
+description: "Wraps github-script with inputs, secret, and JSON output"
+inputs:
+  name:
+    description: "Name to greet"
+    required: true
+  greeting:
+    description: "Greeting phrase"
+    required: false
+    default: "Hello"
+  token:
+    description: "GitHub token or custom secret"
+    required: false
+
+outputs:
+  message:
+    description: "Formatted greeting"
+    value: ${{ steps.say.outputs.message }}
+  json:
+    description: "Structured output as JSON"
+    value: ${{ steps.say.outputs.json }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Say enhanced hello
+      id: say
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.token }}
+        script: |
+          const name = "${{ inputs.name }}";
+          const greeting = "${{ inputs.greeting }}";
+          const token = "${{ inputs.token || 'NO_TOKEN' }}";
+
+          const message = `${greeting}, ${name}!`;
+          const jsonOutput = {
+            name,
+            greeting,
+            fullMessage: message,
+            tokenUsed: token ? true : false
+          };
+
+          core.setOutput("message", message);
+          core.setOutput("json", JSON.stringify(jsonOutput, null, 2));
